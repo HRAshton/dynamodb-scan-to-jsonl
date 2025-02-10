@@ -7,7 +7,7 @@ It reads the configuration from the environment variables:
 - SORTABLE_PRIMARY_KEY: Name of the primary key to sort the items by.
 
 If run with the default configuration, it will:
-1. Find all .jsonl files in the parent directory of this repository.
+1. Find all .jsonl files in the working directory.
 2. Calculate required table names from the file names.
 3. Scan all tables and save the output to the corresponding files.
 """
@@ -22,12 +22,6 @@ import boto3
 
 logger = logging.getLogger()
 
-# The directory where the .jsonl files are stored.
-# Default: parent directory of this repository.
-JSONLS_DIR = os.environ.get('JSONLS_DIR', os.path.join(os.path.realpath(__file__),
-                                                       os.pardir,
-                                                       os.pardir))
-
 # Whether to sort the keys in the JSON lines.
 # Default: true
 SORT_KEYS = os.environ.get('SORT_KEYS', 'true').lower() == 'true'
@@ -39,10 +33,10 @@ SORTABLE_PRIMARY_KEY = os.environ.get('SORTABLE_PRIMARY_KEY', 'userId')
 
 
 def get_tables_with_files() -> dict[str, str]:
-    """Returns all .jsonl files from the parent directory"""
+    """Returns all .jsonl files from the working directory"""
     return {
-        name.replace('.jsonl', ''): os.path.abspath(os.path.join(JSONLS_DIR, name))
-        for name in os.listdir(JSONLS_DIR)
+        name.replace('.jsonl', ''): os.path.abspath(name)
+        for name in os.listdir()
         if name.endswith('.jsonl')
     }
 
@@ -87,7 +81,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     logger.info(json.dumps({
-        'JSONLS_DIR': JSONLS_DIR,
         'SORT_KEYS': SORT_KEYS,
         'SORTABLE_PRIMARY_KEY': SORTABLE_PRIMARY_KEY,
     }, indent=2))
